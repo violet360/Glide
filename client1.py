@@ -41,14 +41,30 @@ class Network:
 			return pickle.loads(self.client.recv(2048))
 		except socket.error as e:
 			print(e)
+
 def deter(x):
-	y = x - int(x)
+	neg = (x<0)
+	
+
+	val = abs(x)
+	ret = 0
+	if(val<1):
+		ret = 1
+
+	y = val - int(val)
 
 	if(y>=(0.5)):
-		return int(x+1)
+		ret = int(val+1)
 
 	else:
-		return int(x)
+		ret = int(val)
+
+	if(neg):
+		return -1*ret
+
+	else:
+		return ret
+
 
 def rel_vec(peg, player, t):
 	return deter((peg[0] - player[0])), deter((peg[1] - player[1]))
@@ -92,12 +108,13 @@ pygame.display.set_caption("Client")
 
 
 
-def redrawWindow(win,player, player2, peg):
+def redrawWindow(win,player, player2, peg, rx, ry):
 	win.fill((255,255,255))
 	player.draw(win)
 	player2.draw(win)
 	if(peg != 0):
 		peg.draw(win)
+	pygame.draw.line(win, (0, 0, 0), player.get_point(), (100+rx, 110+ry), 4)
 	pygame.display.update()
 
 def hit():
@@ -118,6 +135,8 @@ def main():
 	vel_mag = 0
 	ctr =0
 	point = 0
+	rx = 0
+	ry = 0
 	while run:
 		clock.tick(60)
 		recevd = n.send([p, peg])
@@ -147,6 +166,8 @@ def main():
 			# print(direction)
 			# print(peg.get_point())
 			print(rx, ry)
+			
+
 
 			
 			if(hit()):
@@ -164,6 +185,6 @@ def main():
 			peg.move()
 			print(peg.vx, peg.vy)
 
-		redrawWindow(win, p, p2, peg)
+		redrawWindow(win, p, p2, peg, rx, ry)
 
 main()
