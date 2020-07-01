@@ -7,7 +7,7 @@ import math
 import time
 
 def get_time():
-    return int(round(time.time() * 1000))
+	return int(round(time.time() * 1000))
 
 
 
@@ -18,10 +18,15 @@ class Network:
 		self.server = socket.gethostname()
 		self.port = 5555
 		self.addr = (self.server, self.port)
-		self.p = self.connect()
+		self.LIST= self.connect()
+		self.p = self.LIST[0]
+		self.peg = self.LIST[1]
 
 	def getP(self):
 		return self.p
+
+	def getPeg(self):
+		return self.peg
 
 	def connect(self):
 		try:
@@ -36,6 +41,17 @@ class Network:
 			return pickle.loads(self.client.recv(2048))
 		except socket.error as e:
 			print(e)
+def deter(x):
+	y = x - int(x)
+
+	if(y>=(0.5)):
+		return int(x+1)
+
+	else:
+		return int(x)
+
+def rel_vec(peg, player, t):
+	return deter((peg[0] - player[0])), deter((peg[1] - player[1]))
 
 def dotproduct(v1, v2):
 	return sum((a*b) for a, b in zip(v1, v2))
@@ -44,7 +60,7 @@ def length(v):
 	return math.sqrt(dotproduct(v, v))
 
 def angle(v1, v2):
-	return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))                 
+	return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))    
 
 def corner(l):
 	v1 = [(l[0][0] - l[1][0]), (l[0][1] - l[1][1])]
@@ -52,20 +68,36 @@ def corner(l):
 	return math.degrees(angle(v1, v2))
 
 
+# def deter():
+# 	if(self.y >= 450 and self.y <= 41):
+# 		vy=(-1)*vy
+
+# 	if(self.x >= 450 and self.x <= 41):
+# 		vx=(-1)*vx
+
+# 	self.x += vx
+# 	self.y += vy
+# 	self.update()
 
 
 
-
-width = 1900
-height = 900
+# width = 1900
+# height = 900
+width = 500
+height = 500
 win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
 
 
-def redrawWindow(win,player, player2):
+
+
+
+def redrawWindow(win,player, player2, peg):
 	win.fill((255,255,255))
 	player.draw(win)
 	player2.draw(win)
+	if(peg != 0):
+		peg.draw(win)
 	pygame.display.update()
 
 def hit():
@@ -79,6 +111,7 @@ def main():
 	run = True
 	n = Network()
 	p = n.getP()
+	peg = n.getPeg()
 	clock = pygame.time.Clock()
 	points = queue(2)
 	time_stamps = queue(2)
@@ -87,26 +120,35 @@ def main():
 	point = 0
 	while run:
 		clock.tick(60)
-		p2 = n.send(p)
+		recevd = n.send([p, peg])
+		p2 = recevd[0]
+		peg = recevd[1]
 		# print(p2)
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				run = False
 				pygame.quit()
 
+
+
 		ctr+=1
+
+
 		# if(len(points.q) <2):
 		# 	continue
 		try:
 			if(ctr%10 == 0):
-				points.push(p.get_point())
-				time_stamps.push()
-				vel = dist(points[1], points[0])//abs(time_stamps[1] - time_stamps[0])
-				vel = int(vel)
+
+				rx, ry= rel_vec(peg.get_point(), p.get_point(), time_stamps)
+
 				ctr = 0
 
-			direction = (((points.q)[1][0] - (points.q)[0][0]), ((points.q)[1][1] - (points.q)[0][1]))
-			print(direction)
+			# direction = (((points.q)[1][0] - (points.q)[0][0]), ((points.q)[1][1] - (points.q)[0][1]))
+			# print(direction)
+			# print(peg.get_point())
+			print(rx, ry)
+
+			
 			if(hit()):
 				pass
 
@@ -115,6 +157,13 @@ def main():
 
 		p.move()
 
-		redrawWindow(win, p, p2)
+		# deter_vel = deter()
+
+		if(peg != 0):
+			# if(tup[0])
+			peg.move()
+			print(peg.vx, peg.vy)
+
+		redrawWindow(win, p, p2, peg)
 
 main()
