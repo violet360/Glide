@@ -114,7 +114,8 @@ def redrawWindow(win,player, player2, peg, rx, ry):
 	player2.draw(win)
 	if(peg != 0):
 		peg.draw(win)
-	pygame.draw.line(win, (0, 0, 0), player.get_point(), (100+rx, 110+ry), 4)
+	tup = player.get_point()
+	pygame.draw.line(win, (0, 0, 0), tup, (tup[0]+rx, tup[1]+ry), 4)
 	pygame.display.update()
 
 def hit():
