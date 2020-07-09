@@ -66,7 +66,7 @@ def deter(x):
 		return ret
 
 
-def rel_vec(peg, player, t):
+def rel_vec(peg, player):
 	return deter((peg[0] - player[0])), deter((peg[1] - player[1]))
 
 def dotproduct(v1, v2):
@@ -131,8 +131,6 @@ def main():
 	p = n.getP()
 	peg = n.getPeg()
 	clock = pygame.time.Clock()
-	points = queue(2)
-	time_stamps = queue(2)
 	vel_mag = 0
 	ctr =0
 	point = 0
@@ -148,43 +146,27 @@ def main():
 			if event.type == pygame.QUIT:
 				run = False
 				pygame.quit()
-
-
-
 		ctr+=1
 
+		rx, ry= rel_vec(peg.get_point(), p.get_point())
+		print(rx, ry)
+		
+		ctr = 0
 
-		# if(len(points.q) <2):
-		# 	continue
-		try:
-			if(ctr%10 == 0):
-
-				rx, ry= rel_vec(peg.get_point(), p.get_point(), time_stamps)
-
-				ctr = 0
-
-			# direction = (((points.q)[1][0] - (points.q)[0][0]), ((points.q)[1][1] - (points.q)[0][1]))
-			# print(direction)
-			# print(peg.get_point())
-			print(rx, ry)
-			
-
-
-			
-			if(hit()):
+		if(dist(peg.get_point(), p.get_point()) <= 60.0):
+			try:
+				peg.vx = peg.vx*(rx//abs(rx))
+				peg.vy = peg.vy*(ry//abs(ry))
+			except:
 				pass
-
-		except:
-			pass
 
 		p.move()
 
-		# deter_vel = deter()
+
 
 		if(peg != 0):
-			# if(tup[0])
 			peg.move()
-			print(peg.vx, peg.vy)
+			# print(peg.vx, peg.vy)
 
 		redrawWindow(win, p, p2, peg, rx, ry)
 
