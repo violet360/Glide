@@ -1,24 +1,25 @@
 import pygame
 import socket
 from player import Player
-from Queue import queue
 import pickle
 import math
 import time
 
-def get_time():
-	return int(round(time.time() * 1000))
 
 
+width = 500
+height = 500
+win = pygame.display.set_mode((width, height)) #window intialized
+pygame.display.set_caption("Client") #Caption set
 
 
 class Network:
-	def __init__(self):
+	def __init__(self): #constructor
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server = socket.gethostname()
 		self.port = 5555
 		self.addr = (self.server, self.port)
-		self.LIST= self.connect()
+		self.LIST= self.connect() #self.LIST = [player1, peg]
 		self.p = self.LIST[0]
 		self.peg = self.LIST[1]
 
@@ -28,146 +29,74 @@ class Network:
 	def getPeg(self):
 		return self.peg
 
-	def connect(self):
+	def connect(self): 
 		try:
-			self.client.connect(self.addr)
-			return pickle.loads(self.client.recv(2048))
+			self.client.connect(self.addr) #connects with the server
+			return pickle.loads(self.client.recv(2048)) #receives a list of player1 object and peg from the server 
 		except:
 			pass
 
 	def send(self, data):
 		try:
-			self.client.send(pickle.dumps(data))
-			return pickle.loads(self.client.recv(2048))
+			self.client.send(pickle.dumps(data)) #sends the [player1, peg] to the server
+			return pickle.loads(self.client.recv(2048)) # receives [player2, peg]
 		except socket.error as e:
 			print(e)
 
-def deter(x):
-	neg = (x<0)
-	
 
-	val = abs(x)
-	ret = 0
-	if(val<1):
-		ret = 1
+def round_off(x): #this function rounds of  decimal... if so if 0<x<1 the return 1 else if {x}>=0.5 return [x+1]  else return [x]
+	if 0.0<x<1.0:
+		return 1
 
-	y = val - int(val)
+	y = x - int(x)
 
 	if(y>=(0.5)):
-		ret = int(val+1)
+		return int(x+1)
 
 	else:
-		ret = int(val)
-
-	if(neg):
-		return -1*ret
-
-	else:
-		return ret
-
+		return int(x)
 
 def rel_vec(peg, player):
-	return deter((peg[0] - player[0])), deter((peg[1] - player[1]))
-
-def dotproduct(v1, v2):
-	return sum((a*b) for a, b in zip(v1, v2))
-
-def length(v):
-	return math.sqrt(dotproduct(v, v))
-
-def angle(v1, v2):
-	return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))    
-
-def corner(l):
-	v1 = [(l[0][0] - l[1][0]), (l[0][1] - l[1][1])]
-	v2 = [(l[1][0] - l[2][0]), (l[1][1] - l[2][1])]
-	return math.degrees(angle(v1, v2))
+	return round_off((peg[0] - player[0])), round_off((peg[1] - player[1]))
 
 
-# def deter():
-# 	if(self.y >= 450 and self.y <= 41):
-# 		vy=(-1)*vy
-
-# 	if(self.x >= 450 and self.x <= 41):
-# 		vx=(-1)*vx
-
-# 	self.x += vx
-# 	self.y += vy
-# 	self.update()
-
-
-
-# width = 1900
-# height = 900
-width = 500
-height = 500
-win = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Client")
-
-
-
-
-
-def redrawWindow(win,player, player2, peg, rx, ry):
+def redrawWindow(win,player, player2, peg):
 	win.fill((255,255,255))
 	player.draw(win)
 	player2.draw(win)
-	if(peg != 0):
-		peg.draw(win)
-	tup = player.get_point()
-	pygame.draw.line(win, (0, 0, 0), tup, (tup[0]+rx, tup[1]+ry), 4)
+	peg.draw(win)
 	pygame.display.update()
 
-def hit():
-	return True
 
 
 def dist(x, y):
-	return math.sqrt(sum([(a - b) ** 2 for a, b in zip(x, y)]))
+	return math.sqrt(sum([(a - b) ** 2 for a, b in zip(x, y)])) #distance function
 
 def main():
 	run = True
-	n = Network()
-	p = n.getP()
-	peg = n.getPeg()
+	n = Network() #creates an instance of the network connection with server
+	p = n.getP() # p is the object of (player 1)
+	peg = n.getPeg() # object of the peg
 	clock = pygame.time.Clock()
-	vel_mag = 0
-	ctr =0
-	point = 0
-	rx = 0
-	ry = 0
+
 	while run:
 		clock.tick(60)
-		recevd = n.send([p, peg])
-		p2 = recevd[0]
-		peg = recevd[1]
-		# print(p2)
+		player2_obj, peg_obj = n.send([p, peg]) #sends the list of object of the player1 to the server and gets back the object of player2
+		p2 = player2_obj #player 2 object
+		peg = peg_obj #peg object
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				run = False
 				pygame.quit()
-		ctr+=1
 
-		rx, ry= rel_vec(peg.get_point(), p.get_point())
+
+		rx, ry= rel_vec(peg.get_point(), p.get_point()) # [rx , ry] is the relative vector of the peg wrt the striker
+
 		print(rx, ry)
-		
-		ctr = 0
 
-		if(dist(peg.get_point(), p.get_point()) <= 60.0):
-			try:
-				peg.vx = peg.vx*(rx//abs(rx))
-				peg.vy = peg.vy*(ry//abs(ry))
-			except:
-				pass
+		p.move()  #this handles the movement of player , so when you move the mouse the move() method gets the mouse position and postions the player on the mouse pointer 
+		peg.move() #this handles the movement of the peg , this includes the bouncing of the wall
 
-		p.move()
-
-
-
-		if(peg != 0):
-			peg.move()
-			# print(peg.vx, peg.vy)
-
-		redrawWindow(win, p, p2, peg, rx, ry)
+		redrawWindow(win, p, p2, peg) #after each change in the respective positions of player and peg the screen is updated....
 
 main()
