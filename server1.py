@@ -1,8 +1,32 @@
 import socket
 from _thread import *
-from player import Player
+# from player import Player
+from participant import *
 import pickle
-from peg import Peg
+import math
+# from peg import Peg
+
+
+def if_hit(player,peg):
+
+    try:
+        distance = math.sqrt((player.get_position()[0]-peg.get_position()[0])**2+(player.get_position()[1]-peg.get_position()[1])**2)
+        
+        if distance - 5 <= striker_radius+peg_radius:
+            return calculate_velocity(player,peg)
+        else: return False
+        
+    except Exception as e:
+        print(e)
+        return False
+        pass
+
+def calculate_velocity(player,peg):
+    a = peg.position[0]-player.position[0]
+    b = peg.position[1]- player.position[1]
+    d = peg.position[0]-player.position[0]+peg.position[1]- player.position[1]
+    return int (a)//3, int (b)//3
+
 
 server = socket.gethostname()
 port = 5555
@@ -15,18 +39,39 @@ s.listen(2)
 print("Waiting for a connections.............")
 
 
-peg = Peg(25,50, 20, (0,255,0)) #peg object
-players = [Player(0,0, 40, (255,0,0)), Player(0,0, 40,(0,0,255))] #[player1, player2]
+size           = width, height = 1100,650
+striker_radius = height//15
+peg_radius     = int(striker_radius//1.5)
+
+
+player1 = Striker((255, 0, 0),(0, 255, 0),striker_radius,90,30)
+player2 = Striker((255, 0, 0),(0, 255, 0),striker_radius,90,30)
+peg = pegs((255, 255, 255),(0, 0, 255),peg_radius,500,325)
+
+
+# peg = Pegs(25,50, 20, (0,255,0)) #peg object
+players = [player1, player2] #[player1, player2]
 
 def threaded_client(conn, player):
     global peg
-    conn.send(pickle.dumps([players[player], peg])) #sends [respectve_player, peg] to the respctive player 
+    print(conn)
+    try:
+        conn.send(pickle.dumps([players[player], peg])) # sends [respectve_player, peg] to the respctive player 
+    except:
+        print("88888")
     reply = ""
     while True:
         try:
             data = pickle.loads(conn.recv(2048)) #receives [respective_player, peg]
             players[player] = data[0]
             peg = data[1]
+
+            hit = if_hit(players[player] , peg)
+            print("88888888888888")
+            if hit is not False:
+                # print()
+                print(hit)
+                peg.vx, peg.vy = hit
 
             if not data:
                 print("Disconnected")
