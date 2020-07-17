@@ -57,21 +57,23 @@ def threaded_client(conn, player):
     print(conn)
     try:
         conn.send(pickle.dumps([players[player], peg])) # sends [respectve_player, peg] to the respctive player 
-    except:
-        print("88888")
+    except conn.error as e:
+        print(e)
     reply = ""
     while True:
         try:
             data = pickle.loads(conn.recv(2048)) #receives [respective_player, peg]
-            players[player] = data[0]
-            peg = data[1]
+            players[player] = data
 
             hit = if_hit(players[player] , peg)
-            print("88888888888888")
+            # print("88888888888888")
             if hit is not False:
                 # print()
                 print(hit)
                 peg.vx, peg.vy = hit
+
+            peg.move()
+            # players[player].move()
 
             if not data:
                 print("Disconnected")
