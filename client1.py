@@ -48,7 +48,7 @@ def game_loop(exit_game,mouse_pos):
 	clock = pygame.time.Clock()
 	while not exit_game:
 		clock.tick(60)
-		player2, peg = n.send([player1, peg])
+		player2, peg = n.send(player1)
 		make_ground()
 
 
@@ -58,7 +58,7 @@ def game_loop(exit_game,mouse_pos):
 				quit()
 
 		player1.move()
-		peg.move()
+		
 		# hit = if_hit(player1,peg)
 		# if hit is not False:
 		# 	print(hit)
