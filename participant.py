@@ -19,8 +19,8 @@ class Striker():
 		return (self.position)
 
 	def draw(self, win):
-		pygame.draw.circle(win, self.color, (self.x, self.y), self.radius,0)
-		pygame.draw.circle(win,self.color_outline,(self.x, self.y),self.radius,self.radius//10)
+		pygame.draw.circle(win, self.color, self.position, self.radius,0)
+		pygame.draw.circle(win,self.color_outline,self.position,self.radius,self.radius//10)
 
 	def move(self):
 		pos = pygame.mouse.get_pos()
@@ -35,7 +35,7 @@ class Striker():
 class pegs(Striker):
 	def __init__(self,color,color_outline,radius,x, y):
 		super().__init__(color,color_outline,radius,x, y)
-		self.vx, self.vy = 1, 1
+		self.vx, self.vy = 0, 0
 
 	def draw(self, win):
 		pygame.draw.circle(win,self.color,(self.x, self.y),self.radius,0)
@@ -44,11 +44,11 @@ class pegs(Striker):
 
 
 	def move(self):
-		if(self.y >= height or self.y <= peg_radius): #if gets at the lower wall (y of peg >=480) or upper wall( y of peg <= 20) 
+		if(self.y >= (height - peg_radius) or self.y <= peg_radius): #if gets at the lower wall (y of peg >=480) or upper wall( y of peg <= 20) 
 			self.vy = (-1)*self.vy # just reverses the direction of the vy
 
 
-		if(self.x >= width or self.x <= peg_radius): # if gets hit at right or the left wall respectively
+		if(self.x >= (width - peg_radius) or self.x <= peg_radius): # if gets hit at right or the left wall respectively
 			self.vx = (-1)*self.vx # just reverses the direction of vx
 
 		self.x += self.vx
